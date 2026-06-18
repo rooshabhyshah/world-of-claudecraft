@@ -58,10 +58,20 @@ nightly cron; **dedup at cosine > 0.92**. Retrieval is **epicness-scaled** — T
 **multi-query decomposition** (2–3 queries → cosine → merge/dedup → rerank with boosts → an
 LLM `MemoryRanker` pass when > 3 candidates).
 
-**Borrow:** the category-decay + heat model, critical-facts-never-decay, and
-epicness-scaled retrieval are close to ideal for a PF2e campaign — **adapt the categories**
-to our domain (encounter state, NPC disposition, faction intel, quest, location, party
-knowledge). This directly fills our §5.6 / §5C-D campaign-memory layer.
+**Reality check — don't cargo-cult this.** Most of this is premature for us, and two things
+are mislabeled:
+
+1. **Much of what aidm calls "memory" is really exact game state** (HP, positions,
+   NPC status). That belongs in a plain DB read, not a decaying vector store. Don't run
+   state through embeddings.
+2. **The 15 decay multipliers and heat numbers are one author's untuned values** — copying
+   them is cargo-culting, not engineering.
+
+The parts genuinely worth keeping are small and plain: **pin critical facts so they never
+drop**, and **summarize the overflow** once the context window fills. Vector retrieval +
+per-category decay are a *later* optimization for very large histories. See the plain v1
+design in `pf2e-ai-dm.md` §5.6 — build that first; revisit aidm's machinery only if/when
+histories actually outgrow the window.
 
 ### 1.3 Prompt cache + models
 
